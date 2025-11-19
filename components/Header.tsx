@@ -1,5 +1,5 @@
 import { BlurView } from "expo-blur";
-import { LockOpen, Search } from "lucide-react-native";
+import { Lock, LockOpen, Search } from "lucide-react-native";
 import {
   Image,
   Platform,
@@ -15,6 +15,8 @@ import { IconButton } from "./IconButton";
 interface HeaderProps {
   onAddPress: () => void;
   onSettingsPress?: () => void;
+  onLockPress?: () => void;
+  isLocked?: boolean;
   searchQuery: string;
   onSearchChange: (query: string) => void;
 }
@@ -22,6 +24,8 @@ interface HeaderProps {
 export const Header = ({
   onAddPress,
   onSettingsPress,
+  onLockPress,
+  isLocked = false,
   searchQuery,
   onSearchChange,
 }: HeaderProps) => {
@@ -53,8 +57,8 @@ export const Header = ({
             notes.env
           </Text>
         </TouchableOpacity>
-        <IconButton onPress={() => {}} variant="outline">
-          <LockOpen size={20} />
+        <IconButton onPress={onLockPress} variant="outline">
+          {isLocked ? <Lock size={20} /> : <LockOpen size={20} />}
         </IconButton>
       </View>
       <View

@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const NOTES_KEY = '@notes_app_notes';
 const HAS_SETUP_KEY = '@notes_app_has_setup';
+const IS_LOCKED_KEY = '@notes_app_is_locked';
 
 export interface Note {
   id: string;
@@ -103,6 +104,24 @@ export const storage = {
       await AsyncStorage.setItem(HAS_SETUP_KEY, hasSetup ? 'true' : 'false');
     } catch (error) {
       console.error('Error setting setup status:', error);
+    }
+  },
+
+  async isLocked(): Promise<boolean> {
+    try {
+      const value = await AsyncStorage.getItem(IS_LOCKED_KEY);
+      return value === 'true';
+    } catch (error) {
+      console.error('Error checking lock status:', error);
+      return false;
+    }
+  },
+
+  async setLocked(isLocked: boolean): Promise<void> {
+    try {
+      await AsyncStorage.setItem(IS_LOCKED_KEY, isLocked ? 'true' : 'false');
+    } catch (error) {
+      console.error('Error setting lock status:', error);
     }
   },
 };

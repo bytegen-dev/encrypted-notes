@@ -15,6 +15,7 @@ import {
 import { AnimatedSection } from "../components/AnimatedSection";
 import { EmptyState } from "../components/EmptyState";
 import { Header } from "../components/Header";
+import { LockScreen } from "../components/LockScreen";
 import { NoteCard } from "../components/NoteCard";
 import { NoteEditor } from "../components/NoteEditor";
 import { SectionHeader } from "../components/SectionHeader";
@@ -37,6 +38,8 @@ export default function Index() {
   const [content, setContent] = useState("");
   const [showSplash, setShowSplash] = useState(true);
   const [isCheckingSetup, setIsCheckingSetup] = useState(true);
+  const [isLocked, setIsLocked] = useState(false);
+  const [isCheckingLock, setIsCheckingLock] = useState(true);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   const { t, language } = useLanguage();
@@ -62,10 +65,49 @@ export default function Index() {
     const hasSetup = await storage.hasSetup();
     setShowSplash(!hasSetup);
     setIsCheckingSetup(false);
-    // If already set up, show content immediately
+    // If already set up, check lock status and show content
     if (hasSetup) {
+      const locked = await storage.isLocked();
+      setIsLocked(locked);
+      setIsCheckingLock(false);
+      if (!locked) {
+        fadeAnim.setValue(1);
+        loadNotes();
+      }
+    } else {
+      setIsCheckingLock(false);
+    }
+  };
+
+  const checkLockStatus = async () => {
+    const locked = await storage.isLocked();
+    setIsLocked(locked);
+    setIsCheckingLock(false);
+  };
+
+  const toggleLock = async () => {
+    const newLockStatus = !isLocked;
+    await storage.setLocked(newLockStatus);
+    setIsLocked(newLockStatus);
+    // If locking, reset fade animation for lock screen
+    if (newLockStatus) {
       fadeAnim.setValue(1);
-      loadNotes();
+    }
+  };
+
+  const handleUnlock = async () => {
+    await storage.setLocked(false);
+    setIsLocked(false);
+    // Reset fade animation for smooth transition
+    fadeAnim.setValue(0);
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
+    // Reload notes if needed
+    if (!showSplash) {
+      await loadNotes();
     }
   };
 
@@ -327,6 +369,15 @@ export default function Index() {
     );
   }
 
+  // Show lock screen if locked
+  if (isCheckingLock || isLocked) {
+    return (
+      <View className="flex-1" style={{ backgroundColor: bgColor }}>
+        <LockScreen onUnlock={handleUnlock} />
+      </View>
+    );
+  }
+
   return (
     <KeyboardAvoidingView
       className="flex-1"
@@ -342,6 +393,8 @@ export default function Index() {
         <Header
           onAddPress={() => openEditor()}
           onSettingsPress={() => setIsSettingsOpen(true)}
+          onLockPress={toggleLock}
+          isLocked={isLocked}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
         />

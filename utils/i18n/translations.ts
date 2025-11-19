@@ -4,6 +4,11 @@ export const translations = {
     splash: {
       getStarted: "Get Started",
     },
+    // Lock Screen
+    lockScreen: {
+      locked: "Locked",
+      enterPasscode: "Enter 4-digit passcode",
+    },
     // Header
     header: {
       searchPlaceholder: "Search notes...",
@@ -78,6 +83,11 @@ export const translations = {
     // Splash Screen
     splash: {
       getStarted: "始める",
+    },
+    // Lock Screen
+    lockScreen: {
+      locked: "ロック済み",
+      enterPasscode: "4桁のパスコードを入力",
     },
     // Header
     header: {
