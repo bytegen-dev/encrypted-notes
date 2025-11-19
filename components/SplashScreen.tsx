@@ -92,13 +92,15 @@ export const SplashScreen = ({
 
           <View className="flex-1" />
 
-          <View className="pb-12 px-12 gap-3">
+          <View className="pb-12 px-12 gap-3 items-center">
             <TouchableOpacity
               onPress={handleGetStarted}
               className="rounded-full border overflow-hidden"
               style={{
                 borderColor: textColor,
                 borderWidth: 1,
+                maxWidth: 400,
+                width: "100%",
               }}
             >
               {Platform.OS === "ios" ? (
