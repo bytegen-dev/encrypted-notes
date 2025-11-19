@@ -1,6 +1,6 @@
 # notes.env
 
-A secure notes application built with React Native and Expo. Features passcode protection, biometric authentication, and a minimalist black & white interface.
+A secure notes application built with React Native and Expo. Features passcode protection, biometric authentication, encrypted exports.
 
 ## Features
 
