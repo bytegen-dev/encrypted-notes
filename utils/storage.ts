@@ -78,5 +78,13 @@ export const storage = {
     await this.saveNotes(notes);
     return notes[index];
   },
+
+  async clearAllNotes(): Promise<void> {
+    try {
+      await AsyncStorage.removeItem(NOTES_KEY);
+    } catch (error) {
+      console.error('Error clearing notes:', error);
+    }
+  },
 };
 
