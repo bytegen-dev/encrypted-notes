@@ -103,6 +103,7 @@ export const translations = {
     // Empty State
     emptyState: {
       noNotes: "No notes yet.\nTap [+] to create a note.",
+      selectNote: "Select a note to view its details",
     },
   },
   ja: {
@@ -212,6 +213,7 @@ export const translations = {
     emptyState: {
       noNotes:
         "まだノートはありません。\n「+」をタップしてノートを作成してください。",
+      selectNote: "ノートを選択して詳細を表示",
     },
   },
 };

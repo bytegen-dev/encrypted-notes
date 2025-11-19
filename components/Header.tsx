@@ -1,5 +1,5 @@
 import { BlurView } from "expo-blur";
-import { Lock, LockOpen, Search } from "lucide-react-native";
+import { Lock, LockOpen, Plus, Search } from "lucide-react-native";
 import {
   Image,
   Platform,
@@ -57,9 +57,16 @@ export const Header = ({
             notes.env
           </Text>
         </TouchableOpacity>
-        <IconButton onPress={onLockPress} variant="outline">
-          {isLocked ? <Lock size={18} /> : <LockOpen size={18} />}
-        </IconButton>
+        <View className="flex-row gap-2">
+          <IconButton onPress={onAddPress} variant="outline">
+            <Plus size={18} />
+          </IconButton>
+          {onLockPress && (
+            <IconButton onPress={onLockPress} variant="outline">
+              {isLocked ? <Lock size={18} /> : <LockOpen size={18} />}
+            </IconButton>
+          )}
+        </View>
       </View>
       <View
         className="flex-row items-center px-3 py-2 rounded-full border"

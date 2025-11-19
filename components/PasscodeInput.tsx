@@ -38,12 +38,15 @@ export const PasscodeInput = ({
   // Calculate button size based on screen width
   // Account for padding (px-12 = 48px on each side) and gaps (3 gaps * gap size)
   const horizontalPadding = 48 * 2; // px-12 on both sides
-  const gapSize = SCREEN_WIDTH * 0.03; // 3% of screen width for gaps
+  const gapSize = Math.min(SCREEN_WIDTH * 0.03, 16); // 3% of screen width for gaps, max 16px
   const totalGapWidth = gapSize * 2; // 2 gaps between 3 buttons
-  const availableWidth = SCREEN_WIDTH - horizontalPadding - totalGapWidth;
-  const buttonSize = Math.min(availableWidth / 3, SCREEN_WIDTH * 0.22); // Max 22% of screen width
+  const availableWidth = Math.min(
+    SCREEN_WIDTH - horizontalPadding - totalGapWidth,
+    400 - horizontalPadding - totalGapWidth
+  );
+  const buttonSize = Math.min(availableWidth / 3, SCREEN_WIDTH * 0.22, 90); // Max 22% of screen width or 90px
   const iconSize = buttonSize * 0.3; // Icon size relative to button
-  const fontSize = buttonSize * 0.4; // Font size relative to button
+  const fontSize = Math.min(buttonSize * 0.4, 36); // Font size relative to button, max 36px
 
   const digits = [
     ["1", "2", "3"],

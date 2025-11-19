@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   Alert,
   Animated,
+  Dimensions,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -20,6 +21,7 @@ import { Header } from "../components/Header";
 import { LockScreen } from "../components/LockScreen";
 import { NoteCard } from "../components/NoteCard";
 import { NoteEditor } from "../components/NoteEditor";
+import { NotePreviewContent } from "../components/NotePreviewContent";
 import { SectionHeader } from "../components/SectionHeader";
 import { SettingsModal } from "../components/SettingsModal";
 import { SplashScreen } from "../components/SplashScreen";
@@ -44,11 +46,16 @@ export default function Index() {
   const [showCreatePasscode, setShowCreatePasscode] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
   const [isCheckingLock, setIsCheckingLock] = useState(true);
+  const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   const { t, language } = useLanguage();
   const { bgColor, cardBg, borderColor, accentColor } = useTheme();
   const router = useRouter();
+
+  // Detect if device is iPad/tablet (screen width > 768px)
+  const { width: screenWidth } = Dimensions.get("window");
+  const isTablet = screenWidth > 768;
 
   useEffect(() => {
     checkSetup();
@@ -147,7 +154,11 @@ export default function Index() {
   };
 
   const handleNotePress = (note: Note) => {
-    router.push(`/note/${note.id}`);
+    if (isTablet) {
+      setSelectedNoteId(note.id);
+    } else {
+      router.push(`/note/${note.id}`);
+    }
   };
 
   const openEditor = (note?: Note) => {
@@ -179,11 +190,20 @@ export default function Index() {
 
     if (editingNote) {
       await storage.updateNote(editingNote.id, { title, content });
+      await loadNotes();
+      // If editing in split view, keep it selected
+      if (isTablet && selectedNoteId === editingNote.id) {
+        setSelectedNoteId(editingNote.id);
+      }
     } else {
-      await storage.addNote({ title, content });
+      const newNote = await storage.addNote({ title, content });
+      await loadNotes();
+      // If creating a new note in split view, select it
+      if (isTablet && newNote) {
+        setSelectedNoteId(newNote.id);
+      }
     }
 
-    await loadNotes();
     closeEditor();
   };
 
@@ -203,6 +223,10 @@ export default function Index() {
         style: "destructive",
         onPress: async () => {
           await storage.deleteNote(id);
+          // Clear selected note if it was the deleted one
+          if (isTablet && selectedNoteId === id) {
+            setSelectedNoteId(null);
+          }
           await loadNotes();
         },
       },
@@ -423,6 +447,146 @@ export default function Index() {
     );
   }
 
+  const notesListContent = (
+    <>
+      <Header
+        onAddPress={() => openEditor()}
+        onSettingsPress={() => setIsSettingsOpen(true)}
+        onLockPress={toggleLock}
+        isLocked={isLocked}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+      />
+
+      {sections.length === 0 ? (
+        <View className="flex-1 p-4 pt-40 justify-center items-center">
+          <EmptyState />
+        </View>
+      ) : (
+        <FlatList
+          data={sections.flatMap((section) => [
+            { type: "header", section },
+            ...section.data.map((note) => ({ type: "item", note, section })),
+          ])}
+          renderItem={({ item }) => {
+            if (item.type === "header") {
+              return (
+                <SectionHeader
+                  title={item.section.title}
+                  isCollapsed={
+                    item.section.title === t.sections.pinned &&
+                    isPinnedCollapsed
+                  }
+                  onToggle={
+                    item.section.title === t.sections.pinned
+                      ? () => setIsPinnedCollapsed(!isPinnedCollapsed)
+                      : undefined
+                  }
+                />
+              );
+            }
+
+            // Type guard for item type
+            if (item.type !== "item") return null;
+
+            // Type assertion after guard
+            const itemNote = item as {
+              type: "item";
+              note: Note;
+              section: NoteSection;
+            };
+
+            // Render items
+            const section = itemNote.section;
+            const sectionData = section.data;
+            const isLastInSection =
+              sectionData[sectionData.length - 1]?.id === itemNote.note.id;
+
+            if (section.title === t.sections.pinned) {
+              // For Pinned section, wrap all items in AnimatedSection with container
+              const pinnedSection = sections.find(
+                (s) => s.title === t.sections.pinned
+              );
+              const isFirstPinnedItem =
+                pinnedSection?.data[0]?.id === itemNote.note.id;
+
+              if (isFirstPinnedItem) {
+                return (
+                  <AnimatedSection isCollapsed={isPinnedCollapsed}>
+                    <View
+                      className="rounded-xl border overflow-hidden mb-3"
+                      style={{
+                        backgroundColor: cardBg,
+                        borderColor,
+                      }}
+                    >
+                      {pinnedSection?.data.map((note, index) => (
+                        <NoteCard
+                          key={note.id}
+                          note={note}
+                          onPress={handleNotePress}
+                          onPin={togglePin}
+                          onDelete={deleteNote}
+                          isLast={index === pinnedSection.data.length - 1}
+                          isSelected={isTablet && selectedNoteId === note.id}
+                        />
+                      ))}
+                    </View>
+                  </AnimatedSection>
+                );
+              }
+              return null; // Other items are already rendered in the wrapper
+            }
+
+            // For other sections, check if it's the first item to wrap in container
+            const isFirstInSection = sectionData[0]?.id === itemNote.note.id;
+            if (isFirstInSection) {
+              return (
+                <View
+                  className="rounded-xl border overflow-hidden mb-3"
+                  style={{
+                    backgroundColor: cardBg,
+                    borderColor,
+                  }}
+                >
+                  {sectionData.map((note, index) => (
+                    <NoteCard
+                      key={note.id}
+                      note={note}
+                      onPress={handleNotePress}
+                      onPin={togglePin}
+                      onDelete={deleteNote}
+                      isLast={index === sectionData.length - 1}
+                      isSelected={isTablet && selectedNoteId === note.id}
+                    />
+                  ))}
+                </View>
+              );
+            }
+            return null; // Other items are already rendered in the wrapper
+          }}
+          keyExtractor={(item, index) => {
+            if (item.type === "header") {
+              return `header-${item.section.title}`;
+            }
+            if (item.type === "item") {
+              return (
+                item as { type: "item"; note: Note; section: NoteSection }
+              ).note.id;
+            }
+            return `item-${index}`;
+          }}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{
+            padding: 16,
+            paddingTop: 160,
+          }}
+          className="flex-1"
+        />
+      )}
+    </>
+  );
+
   return (
     <KeyboardAvoidingView
       className="flex-1"
@@ -435,163 +599,61 @@ export default function Index() {
           opacity: fadeAnim,
         }}
       >
-        <Header
-          onAddPress={() => openEditor()}
-          onSettingsPress={() => setIsSettingsOpen(true)}
-          onLockPress={toggleLock}
-          isLocked={isLocked}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-        />
-
-        {sections.length === 0 ? (
-          <View className="flex-1 p-4 pt-40 justify-center items-center">
-            <EmptyState />
+        {isTablet ? (
+          <View className="flex-1 flex-row">
+            {/* Sidebar - Notes List */}
+            <View
+              className="flex-1"
+              style={{
+                maxWidth: 400,
+                borderRightWidth: 1,
+                borderRightColor: borderColor,
+              }}
+            >
+              {notesListContent}
+            </View>
+            {/* Main Content - Note Preview */}
+            <View className="flex-1">
+              <NotePreviewContent
+                noteId={selectedNoteId}
+                onNoteUpdate={loadNotes}
+                onNoteDelete={() => {
+                  setSelectedNoteId(null);
+                  loadNotes();
+                }}
+                isSplitView={true}
+              />
+            </View>
           </View>
         ) : (
-          <FlatList
-            data={sections.flatMap((section) => [
-              { type: "header", section },
-              ...section.data.map((note) => ({ type: "item", note, section })),
-            ])}
-            renderItem={({ item }) => {
-              if (item.type === "header") {
-                return (
-                  <SectionHeader
-                    title={item.section.title}
-                    isCollapsed={
-                      item.section.title === t.sections.pinned &&
-                      isPinnedCollapsed
-                    }
-                    onToggle={
-                      item.section.title === t.sections.pinned
-                        ? () => setIsPinnedCollapsed(!isPinnedCollapsed)
-                        : undefined
-                    }
-                  />
-                );
-              }
-
-              // Type guard for item type
-              if (item.type !== "item") return null;
-
-              // Type assertion after guard
-              const itemNote = item as {
-                type: "item";
-                note: Note;
-                section: NoteSection;
-              };
-
-              // Render items
-              const section = itemNote.section;
-              const sectionData = section.data;
-              const isLastInSection =
-                sectionData[sectionData.length - 1]?.id === itemNote.note.id;
-
-              if (section.title === t.sections.pinned) {
-                // For Pinned section, wrap all items in AnimatedSection with container
-                const pinnedSection = sections.find(
-                  (s) => s.title === t.sections.pinned
-                );
-                const isFirstPinnedItem =
-                  pinnedSection?.data[0]?.id === itemNote.note.id;
-
-                if (isFirstPinnedItem) {
-                  return (
-                    <AnimatedSection isCollapsed={isPinnedCollapsed}>
-                      <View
-                        className="rounded-xl border overflow-hidden mb-3"
-                        style={{
-                          backgroundColor: cardBg,
-                          borderColor,
-                        }}
-                      >
-                        {pinnedSection?.data.map((note, index) => (
-                          <NoteCard
-                            key={note.id}
-                            note={note}
-                            onPress={handleNotePress}
-                            onPin={togglePin}
-                            onDelete={deleteNote}
-                            isLast={index === pinnedSection.data.length - 1}
-                          />
-                        ))}
-                      </View>
-                    </AnimatedSection>
-                  );
-                }
-                return null; // Other items are already rendered in the wrapper
-              }
-
-              // For other sections, check if it's the first item to wrap in container
-              const isFirstInSection = sectionData[0]?.id === itemNote.note.id;
-              if (isFirstInSection) {
-                return (
-                  <View
-                    className="rounded-xl border overflow-hidden mb-3"
-                    style={{
-                      backgroundColor: cardBg,
-                      borderColor,
-                    }}
-                  >
-                    {sectionData.map((note, index) => (
-                      <NoteCard
-                        key={note.id}
-                        note={note}
-                        onPress={handleNotePress}
-                        onPin={togglePin}
-                        onDelete={deleteNote}
-                        isLast={index === sectionData.length - 1}
-                      />
-                    ))}
-                  </View>
-                );
-              }
-              return null; // Other items are already rendered in the wrapper
-            }}
-            keyExtractor={(item, index) => {
-              if (item.type === "header") {
-                return `header-${item.section.title}`;
-              }
-              if (item.type === "item") {
-                return (
-                  item as { type: "item"; note: Note; section: NoteSection }
-                ).note.id;
-              }
-              return `item-${index}`;
-            }}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{
-              padding: 16,
-              paddingTop: 160,
-            }}
-            className="flex-1"
-          />
+          notesListContent
         )}
       </Animated.View>
 
       {/* Floating Action Button */}
-      <TouchableOpacity
-        onPress={() => openEditor()}
-        className="absolute bottom-6 right-6 w-14 h-14 rounded-full items-center justify-center"
-        style={{
-          backgroundColor: accentColor,
-          shadowColor: "#000",
-          shadowOffset: {
-            width: 0,
-            height: 2,
-          },
-          shadowOpacity: 0.25,
-          shadowRadius: 3.84,
-          elevation: 5,
-        }}
-      >
-        <Plus
-          size={24}
-          color={accentColor === "#ffffff" ? "#000000" : "#ffffff"}
-          strokeWidth={2.5}
-        />
-      </TouchableOpacity>
+      {!isTablet && (
+        <TouchableOpacity
+          onPress={() => openEditor()}
+          className="absolute bottom-6 right-6 w-14 h-14 rounded-full items-center justify-center"
+          style={{
+            backgroundColor: accentColor,
+            shadowColor: "#000",
+            shadowOffset: {
+              width: 0,
+              height: 2,
+            },
+            shadowOpacity: 0.25,
+            shadowRadius: 3.84,
+            elevation: 5,
+          }}
+        >
+          <Plus
+            size={24}
+            color={accentColor === "#ffffff" ? "#000000" : "#ffffff"}
+            strokeWidth={2.5}
+          />
+        </TouchableOpacity>
+      )}
 
       <NoteEditor
         visible={isEditorOpen}

@@ -1,3 +1,4 @@
+import { Check } from "lucide-react-native";
 import { Alert, Text, TouchableOpacity, View } from "react-native";
 import { formatDate } from "../utils/formatDate";
 import { useLanguage } from "../utils/i18n/LanguageContext";
@@ -10,6 +11,7 @@ interface NoteCardProps {
   onPin?: (id: string) => void;
   onDelete?: (id: string) => void;
   isLast?: boolean;
+  isSelected?: boolean;
 }
 
 export const NoteCard = ({
@@ -18,9 +20,11 @@ export const NoteCard = ({
   onPin,
   onDelete,
   isLast = false,
+  isSelected = false,
 }: NoteCardProps) => {
   const { t } = useLanguage();
-  const { cardBg, textColor, mutedColor, borderColor } = useTheme();
+  const { cardBg, textColor, mutedColor, borderColor, accentColor } =
+    useTheme();
 
   const handleLongPress = () => {
     if (!onPin && !onDelete) return;
@@ -62,25 +66,43 @@ export const NoteCard = ({
         onLongPress={handleLongPress}
         className="p-4"
         style={{
-          backgroundColor: cardBg,
+          backgroundColor: isSelected
+            ? accentColor === "#ffffff"
+              ? "rgba(0, 0, 0, 0.1)"
+              : "rgba(255, 255, 255, 0.1)"
+            : cardBg,
         }}
       >
-        <Text
-          className="text-base font-semibold mb-1"
-          style={{ color: textColor }}
-          numberOfLines={1}
-        >
-          {note.title || t.noteCard.untitled}
-        </Text>
-        {note.content ? (
-          <Text
-            className="text-sm"
-            style={{ color: mutedColor }}
-            numberOfLines={1}
-          >
-            {formatDate(note.updatedAt)} - {note.content}
-          </Text>
-        ) : null}
+        <View className="flex-row items-center justify-between gap-4">
+          <View className="flex-1">
+            <Text
+              className="text-base font-semibold mb-1"
+              style={{ color: textColor }}
+              numberOfLines={1}
+            >
+              {note.title || t.noteCard.untitled}
+            </Text>
+            {note.content ? (
+              <Text
+                className="text-sm"
+                style={{ color: mutedColor }}
+                numberOfLines={1}
+              >
+                {formatDate(note.updatedAt)} - {note.content}
+              </Text>
+            ) : null}
+          </View>
+          {isSelected && (
+            <View
+              className="w-6 h-6 rounded-full items-center justify-center"
+              style={{
+                backgroundColor: textColor,
+              }}
+            >
+              <Check size={16} color={cardBg} strokeWidth={3} />
+            </View>
+          )}
+        </View>
       </TouchableOpacity>
     </View>
   );
