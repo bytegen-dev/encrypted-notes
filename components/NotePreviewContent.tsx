@@ -163,9 +163,8 @@ export const NotePreviewContent = ({
         )}
         {isSplitView && (
           <View
-            className="pb-4 px-4 border-b"
+            className="pb-4 px-4"
             style={{
-              borderBottomColor: borderColor,
               paddingTop: Platform.OS === "ios" ? 60 : 16,
             }}
           >
