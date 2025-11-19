@@ -66,9 +66,7 @@ export const NoteEditor = ({
       <IconButton
         onPress={canSave ? onSave : undefined}
         variant="outline"
-        style={{
-          opacity: canSave ? 1 : 0.5,
-        }}
+        style={{ opacity: canSave ? 1 : 0.5 }}
       >
         <Check size={24} strokeWidth={2.5} />
       </IconButton>

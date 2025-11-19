@@ -1,24 +1,51 @@
 import { BlurView } from "expo-blur";
-import { Plus } from "lucide-react-native";
-import { Platform, Text, View } from "react-native";
+import { Plus, Search } from "lucide-react-native";
+import { Platform, Text, TextInput, View } from "react-native";
 import { useTheme } from "../utils/useTheme";
 import { IconButton } from "./IconButton";
 
 interface HeaderProps {
   onAddPress: () => void;
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
 }
 
-export const Header = ({ onAddPress }: HeaderProps) => {
-  const { textColor, isDark } = useTheme();
+export const Header = ({
+  onAddPress,
+  searchQuery,
+  onSearchChange,
+}: HeaderProps) => {
+  const { textColor, isDark, mutedColor, cardBg, borderColor } = useTheme();
 
   const blurContent = (
-    <View className="flex-row justify-between items-center">
-      <Text className="text-3xl font-bold" style={{ color: textColor }}>
-        Notes
+    <View className="gap-3">
+      <Text
+        className="text-3xl font-bold text-center"
+        style={{ color: textColor }}
+      >
+        cryptonotes
       </Text>
-      <IconButton onPress={onAddPress} variant="outline">
-        <Plus size={24} strokeWidth={2.5} />
-      </IconButton>
+      <View className="flex-row items-center gap-2">
+        <View
+          className="flex-1 flex-row items-center px-3 py-2 rounded-full border bg-transparent"
+          style={{
+            borderColor: borderColor,
+          }}
+        >
+          <Search size={16} color={mutedColor} />
+          <TextInput
+            placeholder="Search notes..."
+            placeholderTextColor={mutedColor}
+            value={searchQuery}
+            onChangeText={onSearchChange}
+            className="flex-1 ml-2 text-base"
+            style={{ color: textColor }}
+          />
+        </View>
+        <IconButton onPress={onAddPress} variant="outline">
+          <Plus size={24} strokeWidth={2.5} />
+        </IconButton>
+      </View>
     </View>
   );
 

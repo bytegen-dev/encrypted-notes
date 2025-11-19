@@ -15,6 +15,8 @@ import { useTheme } from "../utils/useTheme";
 
 export default function Index() {
   const [notes, setNotes] = useState<Note[]>([]);
+  const [filteredNotes, setFilteredNotes] = useState<Note[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [title, setTitle] = useState("");
@@ -25,6 +27,10 @@ export default function Index() {
   useEffect(() => {
     loadNotes();
   }, []);
+
+  useEffect(() => {
+    filterNotes();
+  }, [notes, searchQuery]);
 
   const loadNotes = async () => {
     const loadedNotes = await storage.getNotes();
@@ -39,6 +45,21 @@ export default function Index() {
         return b.updatedAt - a.updatedAt;
       })
     );
+  };
+
+  const filterNotes = () => {
+    if (!searchQuery.trim()) {
+      setFilteredNotes(notes);
+      return;
+    }
+
+    const query = searchQuery.toLowerCase().trim();
+    const filtered = notes.filter(
+      (note) =>
+        note.title.toLowerCase().includes(query) ||
+        note.content.toLowerCase().includes(query)
+    );
+    setFilteredNotes(filtered);
   };
 
   const openEditor = (note?: Note) => {
@@ -103,27 +124,24 @@ export default function Index() {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: bgColor }}
+      className="flex-1"
+      style={{ backgroundColor: bgColor }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <View style={{ flex: 1 }}>
-        <Header onAddPress={() => openEditor()} />
+      <View className="flex-1">
+        <Header
+          onAddPress={() => openEditor()}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+        />
 
-        {notes.length === 0 ? (
-          <View
-            style={{
-              flex: 1,
-              padding: 16,
-              paddingTop: 120,
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
+        {filteredNotes.length === 0 ? (
+          <View className="flex-1 p-4 pt-40 justify-center items-center">
             <EmptyState />
           </View>
         ) : (
           <FlatList
-            data={notes}
+            data={filteredNotes}
             renderItem={({ item }) => (
               <NoteCard
                 note={item}
@@ -136,9 +154,9 @@ export default function Index() {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{
               padding: 16,
-              paddingTop: 120,
+              paddingTop: 160,
             }}
-            style={{ flex: 1 }}
+            className="flex-1"
           />
         )}
       </View>

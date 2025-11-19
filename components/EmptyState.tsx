@@ -5,15 +5,10 @@ export const EmptyState = () => {
   const { mutedColor } = useTheme();
 
   return (
-    <View
-      style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-    >
+    <View className="flex-1 justify-center items-center">
       <Text
-        style={{
-          fontSize: 16,
-          color: mutedColor,
-          textAlign: "center",
-        }}
+        className="text-base text-center"
+        style={{ color: mutedColor }}
       >
         No notes yet{"\n"}Tap + to create one
       </Text>

@@ -12,31 +12,21 @@ interface NoteCardProps {
 }
 
 export const NoteCard = ({ note, onPress, onPin, onDelete }: NoteCardProps) => {
-  const { isDark, cardBg, textColor, borderColor, accentColor, mutedColor } = useTheme();
+  const { cardBg, textColor, borderColor, accentColor, mutedColor } = useTheme();
 
   return (
     <View
+      className="rounded-xl p-4 mb-3 border"
       style={{
         backgroundColor: cardBg,
-        borderRadius: 12,
-        padding: 16,
-        marginBottom: 12,
-        borderWidth: 1,
         borderColor,
       }}
     >
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-          marginBottom: 8,
-        }}
-      >
-        <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
+      <View className="flex-row justify-between items-start mb-2">
+        <View className="flex-row items-center flex-1">
           <TouchableOpacity
             onPress={() => onPin(note.id)}
-            style={{ padding: 4, marginRight: 8 }}
+            className="p-1 mr-2"
           >
             {note.pinned ?? false ? (
               <Pin size={18} color={accentColor} fill={accentColor} />
@@ -44,13 +34,10 @@ export const NoteCard = ({ note, onPress, onPin, onDelete }: NoteCardProps) => {
               <PinOff size={18} color={mutedColor} />
             )}
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => onPress(note)} style={{ flex: 1 }}>
+          <TouchableOpacity onPress={() => onPress(note)} className="flex-1">
             <Text
-              style={{
-                fontSize: 18,
-                fontWeight: "600",
-                color: textColor,
-              }}
+              className="text-lg font-semibold"
+              style={{ color: textColor }}
               numberOfLines={1}
             >
               {note.title || "Untitled"}
@@ -59,7 +46,7 @@ export const NoteCard = ({ note, onPress, onPin, onDelete }: NoteCardProps) => {
         </View>
         <TouchableOpacity
           onPress={() => onDelete(note.id)}
-          style={{ padding: 4 }}
+          className="p-1"
         >
           <Trash2 size={18} color="#ef4444" />
         </TouchableOpacity>
@@ -68,11 +55,8 @@ export const NoteCard = ({ note, onPress, onPin, onDelete }: NoteCardProps) => {
       <TouchableOpacity onPress={() => onPress(note)}>
         {note.content ? (
           <Text
-            style={{
-              fontSize: 14,
-              color: mutedColor,
-              marginBottom: 8,
-            }}
+            className="text-sm mb-2"
+            style={{ color: mutedColor }}
             numberOfLines={3}
           >
             {note.content}
@@ -80,10 +64,8 @@ export const NoteCard = ({ note, onPress, onPin, onDelete }: NoteCardProps) => {
         ) : null}
 
         <Text
-          style={{
-            fontSize: 12,
-            color: mutedColor,
-          }}
+          className="text-xs"
+          style={{ color: mutedColor }}
         >
           {formatDate(note.updatedAt)}
         </Text>
