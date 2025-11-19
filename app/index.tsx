@@ -1,3 +1,6 @@
+import * as DocumentPicker from "expo-document-picker";
+import { File, Paths } from "expo-file-system";
+import * as Sharing from "expo-sharing";
 import { useEffect, useState } from "react";
 import {
   Alert,
@@ -12,7 +15,7 @@ import { Header } from "../components/Header";
 import { NoteCard } from "../components/NoteCard";
 import { NoteEditor } from "../components/NoteEditor";
 import { SectionHeader } from "../components/SectionHeader";
-import { Sidebar } from "../components/Sidebar";
+import { SettingsModal } from "../components/SettingsModal";
 import { groupNotesByTime, NoteSection } from "../utils/groupNotes";
 import { Note, storage } from "../utils/storage";
 import { useTheme } from "../utils/useTheme";
@@ -22,8 +25,8 @@ export default function Index() {
   const [sections, setSections] = useState<NoteSection[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isPinnedCollapsed, setIsPinnedCollapsed] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -76,9 +79,12 @@ export default function Index() {
 
   const closeEditor = () => {
     setIsEditorOpen(false);
-    setEditingNote(null);
-    setTitle("");
-    setContent("");
+    // Delay state reset to allow modal animation to complete
+    setTimeout(() => {
+      setEditingNote(null);
+      setTitle("");
+      setContent("");
+    }, 300);
   };
 
   const saveNote = async () => {
@@ -121,6 +127,165 @@ export default function Index() {
     );
   };
 
+  const exportNotes = async () => {
+    try {
+      const allNotes = await storage.getNotes();
+      const jsonData = JSON.stringify(allNotes, null, 2);
+      const fileName = `notes-export-${Date.now()}.json`;
+      const file = new File(Paths.cache, fileName);
+
+      await file.write(jsonData);
+
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(file.uri, {
+          mimeType: "application/json",
+          dialogTitle: "Export Notes",
+        });
+      } else {
+        Alert.alert("Export", "Sharing is not available on this device");
+      }
+    } catch (error) {
+      console.error("Error exporting notes:", error);
+      Alert.alert("Error", "Failed to export notes");
+    }
+  };
+
+  const importNotes = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: "application/json",
+        copyToCacheDirectory: true,
+      });
+
+      if (result.canceled) {
+        return;
+      }
+
+      const fileUri = result.assets[0].uri;
+      const file = new File(fileUri);
+      const jsonString = await file.text();
+      const importedData = JSON.parse(jsonString);
+
+      // Validate that it's an array
+      if (!Array.isArray(importedData)) {
+        Alert.alert(
+          "Error",
+          "Invalid file format. Expected an array of notes."
+        );
+        return;
+      }
+
+      // Validate and normalize each note
+      const validNotes = importedData
+        .filter(
+          (note: any) =>
+            note &&
+            typeof note === "object" &&
+            typeof note.title === "string" &&
+            typeof note.content === "string"
+        )
+        .map((note: any) => ({
+          ...note,
+          id:
+            note.id ||
+            Date.now().toString() + Math.random().toString(36).substring(2, 11),
+          createdAt: note.createdAt || Date.now(),
+          updatedAt: note.updatedAt || Date.now(),
+          pinned: note.pinned ?? false,
+        }));
+
+      if (validNotes.length === 0) {
+        Alert.alert("Error", "No valid notes found in the file.");
+        return;
+      }
+
+      // Check if there are existing notes
+      const existingNotes = await storage.getNotes();
+
+      // If no existing notes, import directly
+      if (existingNotes.length === 0) {
+        await storage.saveNotes(validNotes);
+        await loadNotes();
+        Alert.alert("Success", `Imported ${validNotes.length} note(s).`);
+        return;
+      }
+
+      // Ask user if they want to replace or merge
+      Alert.alert(
+        "Import Notes",
+        `Found ${validNotes.length} note(s). Do you want to replace all existing notes or merge them (overwriting notes with matching IDs)?`,
+        [
+          {
+            text: "Cancel",
+            style: "cancel",
+          },
+          {
+            text: "Replace",
+            style: "destructive",
+            onPress: async () => {
+              await storage.saveNotes(validNotes);
+              await loadNotes();
+              Alert.alert("Success", `Imported ${validNotes.length} note(s).`);
+            },
+          },
+          {
+            text: "Merge",
+            onPress: async () => {
+              const currentNotes = await storage.getNotes();
+              const existingIds = new Set(currentNotes.map((n) => n.id));
+
+              // Overwrite existing notes or add new ones
+              const mergedNotes = [...currentNotes];
+              let updatedCount = 0;
+              let addedCount = 0;
+
+              validNotes.forEach((importedNote) => {
+                if (existingIds.has(importedNote.id)) {
+                  // Overwrite existing note
+                  const index = mergedNotes.findIndex(
+                    (n) => n.id === importedNote.id
+                  );
+                  if (index !== -1) {
+                    mergedNotes[index] = importedNote;
+                    updatedCount++;
+                  }
+                } else {
+                  // Add new note
+                  mergedNotes.push(importedNote);
+                  addedCount++;
+                }
+              });
+
+              await storage.saveNotes(mergedNotes);
+              await loadNotes();
+
+              const message =
+                updatedCount > 0 && addedCount > 0
+                  ? `Updated ${updatedCount} note(s) and added ${addedCount} new note(s).`
+                  : updatedCount > 0
+                  ? `Updated ${updatedCount} note(s).`
+                  : `Added ${addedCount} new note(s).`;
+
+              Alert.alert("Success", message);
+            },
+          },
+        ]
+      );
+    } catch (error) {
+      console.error("Error importing notes:", error);
+      Alert.alert(
+        "Error",
+        "Failed to import notes. Please check the file format."
+      );
+    }
+  };
+
+  const clearAllData = async () => {
+    await storage.clearAllNotes();
+    await loadNotes();
+    setIsSettingsOpen(false);
+  };
+
   return (
     <KeyboardAvoidingView
       className="flex-1"
@@ -130,7 +295,7 @@ export default function Index() {
       <View className="flex-1">
         <Header
           onAddPress={() => openEditor()}
-          onSidebarPress={() => setIsSidebarOpen(true)}
+          onSettingsPress={() => setIsSettingsOpen(true)}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
         />
@@ -271,9 +436,12 @@ export default function Index() {
         onSave={saveNote}
       />
 
-      <Sidebar
-        visible={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
+      <SettingsModal
+        visible={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        onClearData={clearAllData}
+        onExport={exportNotes}
+        onImport={importNotes}
       />
     </KeyboardAvoidingView>
   );

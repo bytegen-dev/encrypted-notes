@@ -13,14 +13,14 @@ import { IconButton } from "./IconButton";
 
 interface HeaderProps {
   onAddPress: () => void;
-  onSidebarPress: () => void;
+  onSettingsPress?: () => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
 }
 
 export const Header = ({
   onAddPress,
-  onSidebarPress,
+  onSettingsPress,
   searchQuery,
   onSearchChange,
 }: HeaderProps) => {
@@ -31,7 +31,7 @@ export const Header = ({
       <View className="flex-row items-center justify-between">
         <TouchableOpacity
           className="flex-row items-center gap-2"
-          onPress={onSidebarPress}
+          onPress={onSettingsPress}
         >
           <Image
             source={require("../assets/images/image.png")}
