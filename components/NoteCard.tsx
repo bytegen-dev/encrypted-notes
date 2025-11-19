@@ -1,4 +1,5 @@
 import { Alert, Text, TouchableOpacity, View } from "react-native";
+import { formatDate } from "../utils/formatDate";
 import { Note } from "../utils/storage";
 import { useTheme } from "../utils/useTheme";
 
@@ -75,7 +76,7 @@ export const NoteCard = ({
             style={{ color: mutedColor }}
             numberOfLines={1}
           >
-            {note.content}
+            {formatDate(note.updatedAt)} - {note.content}
           </Text>
         ) : null}
       </TouchableOpacity>
