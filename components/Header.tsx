@@ -1,6 +1,7 @@
 import { BlurView } from "expo-blur";
 import { Lock, LockOpen, Plus, Search } from "lucide-react-native";
 import {
+  Dimensions,
   Image,
   Platform,
   Text,
@@ -32,6 +33,10 @@ export const Header = ({
   const { t } = useLanguage();
   const { textColor, isDark, mutedColor, cardBg, borderColor } = useTheme();
 
+  // Detect if device is iPad/tablet (screen width > 768px)
+  const { width: screenWidth } = Dimensions.get("window");
+  const isTablet = screenWidth > 768;
+
   const blurContent = (
     <View className="gap-3">
       <View className="flex-row items-center justify-between">
@@ -58,9 +63,11 @@ export const Header = ({
           </Text>
         </TouchableOpacity>
         <View className="flex-row gap-2">
-          <IconButton onPress={onAddPress} variant="outline">
-            <Plus size={18} />
-          </IconButton>
+          {isTablet && (
+            <IconButton onPress={onAddPress} variant="outline">
+              <Plus size={18} />
+            </IconButton>
+          )}
           {onLockPress && (
             <IconButton onPress={onLockPress} variant="outline">
               {isLocked ? <Lock size={18} /> : <LockOpen size={18} />}

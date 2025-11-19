@@ -121,8 +121,11 @@ export const NotePreviewContent = ({
       )}
       {isSplitView && <View style={{ flex: 1 }} />}
       <View className="flex-row gap-2">
-        <IconButton onPress={handlePin} variant="outline">
-          {note.pinned ? <Pin size={18} /> : <PinOff size={18} />}
+        <IconButton
+          onPress={handlePin}
+          variant={note.pinned ? "filled" : "outline"}
+        >
+          {note.pinned ? <PinOff size={18} /> : <Pin size={18} />}
         </IconButton>
         <IconButton onPress={handleEdit} variant="outline">
           <Edit size={18} />
