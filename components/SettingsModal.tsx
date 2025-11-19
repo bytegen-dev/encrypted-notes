@@ -1,5 +1,6 @@
 import { BlurView } from "expo-blur";
-import { X } from "lucide-react-native";
+import { Check, ChevronDown, X } from "lucide-react-native";
+import { useState } from "react";
 import {
   Alert,
   Modal,
@@ -21,6 +22,11 @@ interface SettingsModalProps {
   onImport: () => void;
 }
 
+const languages = [
+  { code: "en", name: "English" },
+  { code: "ja", name: "日本語" },
+];
+
 export const SettingsModal = ({
   visible,
   onClose,
@@ -37,6 +43,7 @@ export const SettingsModal = ({
     borderColor,
     destructiveColor,
   } = useTheme();
+  const [showLanguagePicker, setShowLanguagePicker] = useState(false);
 
   // Use a muted background for the modal
   const modalBg = isDark ? "#0a0a0a" : "#fafafa";
@@ -55,10 +62,12 @@ export const SettingsModal = ({
     ]);
   };
 
-  const handleLanguageChange = () => {
-    const newLanguage = language === "ja" ? "en" : "ja";
-    setLanguage(newLanguage);
+  const handleLanguageSelect = (langCode: "en" | "ja") => {
+    setLanguage(langCode);
+    setShowLanguagePicker(false);
   };
+
+  const currentLanguage = languages.find((lang) => lang.code === language);
 
   const headerContent = (
     <View className="flex-row justify-between items-center">
@@ -108,23 +117,30 @@ export const SettingsModal = ({
           contentContainerStyle={{ paddingTop: 70 }}
         >
           <TouchableOpacity
-            onPress={handleLanguageChange}
+            onPress={() => setShowLanguagePicker(true)}
             className="p-4 rounded-xl border mb-3"
             style={{
               backgroundColor: cardBg,
               borderColor: borderColor,
             }}
           >
-            <Text
-              className="text-base font-semibold"
-              style={{ color: textColor }}
-            >
-              {t.settings.language}
-            </Text>
-            <Text className="text-sm mt-1" style={{ color: mutedColor }}>
-              {t.settings.languageDesc} (
-              {language === "ja" ? t.settings.japanese : t.settings.english})
-            </Text>
+            <View className="flex-row items-center justify-between">
+              <View className="flex-1">
+                <Text
+                  className="text-base font-semibold"
+                  style={{ color: textColor }}
+                >
+                  {t.settings.language}
+                </Text>
+                <Text className="text-sm mt-1" style={{ color: mutedColor }}>
+                  {t.settings.languageDesc}
+                </Text>
+                <Text className="text-base mt-2" style={{ color: textColor }}>
+                  {currentLanguage?.name}
+                </Text>
+              </View>
+              <ChevronDown size={20} color={mutedColor} />
+            </View>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={onImport}
@@ -185,6 +201,86 @@ export const SettingsModal = ({
           </TouchableOpacity>
         </ScrollView>
       </View>
+
+      {/* Language Picker Modal */}
+      <Modal
+        visible={showLanguagePicker}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowLanguagePicker(false)}
+      >
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={() => setShowLanguagePicker(false)}
+          className="flex-1 justify-center items-center"
+          style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+        >
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
+            className="rounded-2xl border overflow-hidden"
+            style={{
+              backgroundColor: cardBg,
+              borderColor: borderColor,
+              width: "80%",
+              maxWidth: 400,
+            }}
+          >
+            <View
+              className="p-4 border-b"
+              style={{ borderBottomColor: borderColor }}
+            >
+              <Text
+                className="text-lg font-semibold"
+                style={{ color: textColor }}
+              >
+                {t.settings.language}
+              </Text>
+            </View>
+            <ScrollView>
+              {languages.map((lang, index) => (
+                <TouchableOpacity
+                  key={lang.code}
+                  onPress={() => handleLanguageSelect(lang.code as "en" | "ja")}
+                  className="p-4"
+                  style={{
+                    borderBottomWidth: index < languages.length - 1 ? 1 : 0,
+                    borderBottomColor: borderColor,
+                    backgroundColor:
+                      language === lang.code
+                        ? isDark
+                          ? "rgba(255, 255, 255, 0.1)"
+                          : "rgba(0, 0, 0, 0.05)"
+                        : "transparent",
+                  }}
+                >
+                  <View className="flex-row items-center justify-between">
+                    <Text
+                      className="text-base"
+                      style={{
+                        color: textColor,
+                        fontWeight: language === lang.code ? "600" : "400",
+                      }}
+                    >
+                      {lang.name}
+                    </Text>
+                    {language === lang.code && (
+                      <View
+                        className="w-6 h-6 rounded-full items-center justify-center"
+                        style={{
+                          backgroundColor: textColor,
+                        }}
+                      >
+                        <Check size={16} color={cardBg} strokeWidth={3} />
+                      </View>
+                    )}
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
     </Modal>
   );
 };

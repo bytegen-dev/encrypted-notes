@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useLanguage } from "../utils/i18n/LanguageContext";
 import { useTheme } from "../utils/useTheme";
 
 interface PasscodeInputProps {
@@ -23,6 +24,7 @@ export const PasscodeInput = ({
   onDigitPress,
   onDelete,
 }: PasscodeInputProps) => {
+  const { t } = useLanguage();
   const { textColor, isDark, mutedColor } = useTheme();
 
   // Calculate button size based on screen width
@@ -45,16 +47,20 @@ export const PasscodeInput = ({
   const renderButton = (value: string, row: number, col: number) => {
     if (value === "biometric") {
       const BiometricIcon = Platform.OS === "ios" ? ScanFace : Fingerprint;
-      const biometricName = Platform.OS === "ios" ? "Face ID" : "Fingerprint";
+      const alertTitle =
+        Platform.OS === "ios"
+          ? t.lockScreen.faceIdUnlock
+          : t.lockScreen.fingerprintUnlock;
+      const alertMessage =
+        Platform.OS === "ios"
+          ? t.lockScreen.faceIdNotEnabled
+          : t.lockScreen.fingerprintNotEnabled;
 
       return (
         <TouchableOpacity
           key={`${row}-${col}`}
           onPress={() => {
-            Alert.alert(
-              `${biometricName} Unlock`,
-              `${biometricName.toLowerCase()} unlock has not yet been enabled`
-            );
+            Alert.alert(alertTitle, alertMessage);
           }}
           className="rounded-3xl items-center justify-center overflow-hidden border"
           style={{

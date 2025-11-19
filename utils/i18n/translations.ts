@@ -8,6 +8,10 @@ export const translations = {
     lockScreen: {
       locked: "Locked",
       enterPasscode: "Enter 4-digit passcode",
+      faceIdUnlock: "Face ID Unlock",
+      fingerprintUnlock: "Fingerprint Unlock",
+      faceIdNotEnabled: "Face ID unlock has not yet been enabled",
+      fingerprintNotEnabled: "Fingerprint unlock has not yet been enabled",
     },
     // Header
     header: {
@@ -88,6 +92,10 @@ export const translations = {
     lockScreen: {
       locked: "ロック済み",
       enterPasscode: "4桁のパスコードを入力",
+      faceIdUnlock: "Face ID ロック解除",
+      fingerprintUnlock: "指紋認証ロック解除",
+      faceIdNotEnabled: "Face ID ロック解除はまだ有効になっていません",
+      fingerprintNotEnabled: "指紋認証ロック解除はまだ有効になっていません",
     },
     // Header
     header: {
