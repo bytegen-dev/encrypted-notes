@@ -105,11 +105,21 @@ export default function Index() {
       style={{ flex: 1, backgroundColor: bgColor }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <View style={{ flex: 1, padding: 16, paddingTop: 60 }}>
+      <View style={{ flex: 1 }}>
         <Header onAddPress={() => openEditor()} />
 
         {notes.length === 0 ? (
-          <EmptyState />
+          <View
+            style={{
+              flex: 1,
+              padding: 16,
+              paddingTop: 120,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <EmptyState />
+          </View>
         ) : (
           <FlatList
             data={notes}
@@ -123,6 +133,11 @@ export default function Index() {
             )}
             keyExtractor={(item) => item.id}
             showsVerticalScrollIndicator={false}
+            contentContainerStyle={{
+              padding: 16,
+              paddingTop: 120,
+            }}
+            style={{ flex: 1 }}
           />
         )}
       </View>
