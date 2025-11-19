@@ -2,6 +2,8 @@ import { useState } from "react";
 import {
   Alert,
   ImageBackground,
+  Modal,
+  Pressable,
   StatusBar,
   Text,
   TouchableOpacity,
@@ -10,10 +12,12 @@ import {
 import { useLanguage } from "../utils/i18n/LanguageContext";
 import { storage } from "../utils/storage";
 import { useTheme } from "../utils/useTheme";
+import { Dialog } from "./Dialog";
 import { PasscodeInput } from "./PasscodeInput";
 
 interface LockScreenProps {
   onUnlock: () => void;
+  onReset?: () => void;
 }
 
 const splashImages = [
@@ -22,11 +26,12 @@ const splashImages = [
   require("../assets/images/splash-3.gif"),
 ];
 
-export const LockScreen = ({ onUnlock }: LockScreenProps) => {
+export const LockScreen = ({ onUnlock, onReset }: LockScreenProps) => {
   const { t } = useLanguage();
   const theme = useTheme();
   const [splashIndex, setSplashIndex] = useState(0);
   const [passcode, setPasscode] = useState("");
+  const [showForgotPasscodeModal, setShowForgotPasscodeModal] = useState(false);
 
   const textColor = "#ffffff";
   const bgColor = "#000000";
@@ -83,6 +88,27 @@ export const LockScreen = ({ onUnlock }: LockScreenProps) => {
 
     const storedPasscodeTrimmed = storedPasscode.trim();
     return storedPasscodeTrimmed === codeToCheck;
+  };
+
+  const handleForgotPasscode = () => {
+    setShowForgotPasscodeModal(true);
+  };
+
+  const handleResetApp = () => {
+    setShowForgotPasscodeModal(false);
+    Alert.alert(t.lockScreen.resetApp, t.lockScreen.resetConfirmMessage, [
+      {
+        text: t.alerts.cancel,
+        style: "cancel",
+      },
+      {
+        text: t.lockScreen.resetApp,
+        style: "destructive",
+        onPress: () => {
+          onReset?.();
+        },
+      },
+    ]);
   };
 
   return (
@@ -144,9 +170,36 @@ export const LockScreen = ({ onUnlock }: LockScreenProps) => {
               onDigitPress={handleDigitPress}
               onDelete={handleDelete}
             />
+            <Pressable onPress={handleForgotPasscode} className="mt-4">
+              <Text
+                className="text-sm font-mono text-center"
+                style={{ color: textColor, opacity: 0.7 }}
+              >
+                {t.lockScreen.forgotPasscode}
+              </Text>
+            </Pressable>
           </View>
         </ImageBackground>
       </TouchableOpacity>
+
+      {/* Forgot Passcode Modal */}
+      <Modal
+        visible={showForgotPasscodeModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowForgotPasscodeModal(false)}
+      >
+        <Dialog
+          visible={showForgotPasscodeModal}
+          title={t.lockScreen.forgotPasscodeTitle}
+          message={t.lockScreen.forgotPasscodeMessage}
+          onClose={() => setShowForgotPasscodeModal(false)}
+          onConfirm={handleResetApp}
+          confirmText={t.lockScreen.resetApp}
+          cancelText={t.alerts.cancel}
+          confirmStyle="destructive"
+        />
+      </Modal>
     </View>
   );
 };

@@ -22,6 +22,7 @@ import { NoteEditor } from "../components/NoteEditor";
 import { SectionHeader } from "../components/SectionHeader";
 import { SettingsModal } from "../components/SettingsModal";
 import { SplashScreen } from "../components/SplashScreen";
+import { resetApp } from "../utils/appReset";
 import { groupNotesByTime, NoteSection } from "../utils/groupNotes";
 import { useLanguage } from "../utils/i18n/LanguageContext";
 import { Note, storage } from "../utils/storage";
@@ -357,12 +358,17 @@ export default function Index() {
   };
 
   const clearAllData = async () => {
-    await storage.clearAllNotes();
-    await storage.setHasSetup(false);
-    await storage.clearPasscode();
+    await resetApp();
     await loadNotes();
     setIsSettingsOpen(false);
     setShowSplash(true);
+  };
+
+  const handleResetFromLock = async () => {
+    await resetApp();
+    setShowSplash(true);
+    setIsLocked(false);
+    setShowCreatePasscode(false);
   };
 
   const handleGetStarted = async () => {
@@ -410,7 +416,7 @@ export default function Index() {
   if (isCheckingLock || isLocked) {
     return (
       <View className="flex-1" style={{ backgroundColor: bgColor }}>
-        <LockScreen onUnlock={handleUnlock} />
+        <LockScreen onUnlock={handleUnlock} onReset={handleResetFromLock} />
       </View>
     );
   }
@@ -602,6 +608,7 @@ export default function Index() {
         onClearData={clearAllData}
         onExport={exportNotes}
         onImport={importNotes}
+        hasNotes={notes.length > 0}
       />
     </KeyboardAvoidingView>
   );

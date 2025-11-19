@@ -9,6 +9,12 @@ export const translations = {
       locked: "Locked",
       enterPasscode: "Enter 4-digit passcode",
       incorrectPasscode: "Incorrect passcode. Please try again.",
+      forgotPasscode: "Forgot passcode?",
+      forgotPasscodeTitle: "Forgot Passcode?",
+      forgotPasscodeMessage:
+        "You can reset the app to remove the passcode, but this will permanently delete all your notes. This action cannot be undone.",
+      resetApp: "Reset App",
+      resetConfirmMessage: "Are you sure? This action cannot be undone.",
       faceIdUnlock: "Face ID Unlock",
       fingerprintUnlock: "Fingerprint Unlock",
       faceIdNotEnabled: "Face ID unlock has not yet been enabled",
@@ -106,6 +112,13 @@ export const translations = {
       enterPasscode: "4桁のパスコードを入力",
       incorrectPasscode:
         "パスコードが正しくありません。もう一度お試しください。",
+      forgotPasscode: "パスコードを忘れた場合",
+      forgotPasscodeTitle: "パスコードを忘れた場合",
+      forgotPasscodeMessage:
+        "アプリをリセットしてパスコードを削除できますが、これによりすべてのノートが完全に削除されます。この操作は元に戻すことができません。",
+      resetApp: "アプリをリセット",
+      resetConfirmMessage:
+        "本当によろしいですか？この操作は元に戻すことができません。",
       faceIdUnlock: "Face ID ロック解除",
       fingerprintUnlock: "指紋認証ロック解除",
       faceIdNotEnabled: "Face ID ロック解除はまだ有効になっていません",
