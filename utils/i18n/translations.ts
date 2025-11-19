@@ -4,6 +4,15 @@ export const translations = {
     splash: {
       getStarted: "Get Started",
     },
+    // Lock Screen
+    lockScreen: {
+      locked: "Locked",
+      enterPasscode: "Enter 4-digit passcode",
+      faceIdUnlock: "Face ID Unlock",
+      fingerprintUnlock: "Fingerprint Unlock",
+      faceIdNotEnabled: "Face ID unlock has not yet been enabled",
+      fingerprintNotEnabled: "Fingerprint unlock has not yet been enabled",
+    },
     // Header
     header: {
       searchPlaceholder: "Search notes...",
@@ -78,6 +87,15 @@ export const translations = {
     // Splash Screen
     splash: {
       getStarted: "始める",
+    },
+    // Lock Screen
+    lockScreen: {
+      locked: "ロック済み",
+      enterPasscode: "4桁のパスコードを入力",
+      faceIdUnlock: "Face ID ロック解除",
+      fingerprintUnlock: "指紋認証ロック解除",
+      faceIdNotEnabled: "Face ID ロック解除はまだ有効になっていません",
+      fingerprintNotEnabled: "指紋認証ロック解除はまだ有効になっていません",
     },
     // Header
     header: {
