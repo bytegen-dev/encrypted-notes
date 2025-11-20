@@ -1,5 +1,5 @@
 import { BlurView } from "expo-blur";
-import { Check, Lock, LockOpen, X } from "lucide-react-native";
+import { Check, Shield, X } from "lucide-react-native";
 import {
   Modal,
   Platform,
@@ -151,26 +151,24 @@ export const NoteEditor = ({
                 }}
               >
                 <View className="flex-row items-center gap-3 flex-1">
-                  {encrypted ? (
-                    <Lock size={20} color={textColor} />
-                  ) : (
-                    <LockOpen size={20} color={textColor} />
-                  )}
+                  <Shield size={20} color={textColor} />
                   <View className="flex-1">
                     <Text
                       className="text-base font-semibold"
-                      style={{ color: textColor }}
+                      style={{ color: mutedColor }}
                     >
-                      {encrypted ? "Encrypted" : "Not Encrypted"}
+                      {encrypted
+                        ? t.noteEditor.encrypted
+                        : t.noteEditor.notEncrypted}
                     </Text>
-                    <Text
+                    {/* <Text
                       className="text-sm mt-1"
                       style={{ color: mutedColor }}
                     >
                       {encrypted
-                        ? "Content is encrypted with your passcode"
-                        : "Content is stored in plain text"}
-                    </Text>
+                        ? t.noteEditor.encryptedDesc
+                        : t.noteEditor.notEncryptedDesc}
+                    </Text> */}
                   </View>
                 </View>
                 <Switch
