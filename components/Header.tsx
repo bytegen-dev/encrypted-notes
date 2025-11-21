@@ -75,23 +75,43 @@ export const Header = ({
           )}
         </View>
       </View>
-      <View
-        className="flex-row items-center px-3 py-2 rounded-full border"
-        style={{
-          backgroundColor: cardBg,
-          borderColor: borderColor,
-        }}
-      >
-        <Search size={14} color={mutedColor} />
-        <TextInput
-          placeholder={t.header.searchPlaceholder}
-          placeholderTextColor={mutedColor}
-          value={searchQuery}
-          onChangeText={onSearchChange}
-          className="flex-1 font-mono ml-2 text-base tracking-tighter"
-          style={{ color: textColor }}
-        />
-      </View>
+      {Platform.OS === "ios" ? (
+        <View
+          className="flex-row items-center px-3 h-12 justify-start rounded-full border"
+          style={{
+            backgroundColor: cardBg,
+            borderColor: borderColor,
+          }}
+        >
+          <Search size={14} color={mutedColor} />
+          <TextInput
+            placeholder={t.header.searchPlaceholder}
+            placeholderTextColor={mutedColor}
+            value={searchQuery}
+            onChangeText={onSearchChange}
+            className="flex-1 font-mono ml-2 text-base tracking-tighter"
+            style={{ color: textColor }}
+          />
+        </View>
+      ) : (
+        <View
+          className="flex-row items-center px-3 h-12 justify-start rounded-full border"
+          style={{
+            backgroundColor: cardBg,
+            borderColor: borderColor,
+          }}
+        >
+          <Search size={14} color={mutedColor} />
+          <TextInput
+            placeholder={t.header.searchPlaceholder}
+            placeholderTextColor={mutedColor}
+            value={searchQuery}
+            onChangeText={onSearchChange}
+            className="flex-1 font-mono ml-2 text-base tracking-tighter"
+            style={{ color: textColor }}
+          />
+        </View>
+      )}
     </View>
   );
 
